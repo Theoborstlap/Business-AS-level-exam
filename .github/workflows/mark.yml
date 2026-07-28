@@ -1,0 +1,43 @@
+name: Mark exam submissions
+
+# Runs whenever a submission file changes, marks it with tools/marker.py,
+# and commits the feedback report back into submissions/.
+on:
+  push:
+    paths:
+      - 'submissions/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mark-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  mark:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Mark all submissions
+        run: python3 tools/marker.py
+
+      - name: Commit feedback (if any changed)
+        run: |
+          git config user.name "exam-marker-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add submissions/*.feedback.md 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No feedback changes to commit."
+          else
+            git commit -m "Auto-mark submissions [skip ci]"
+            git push
+          fi
