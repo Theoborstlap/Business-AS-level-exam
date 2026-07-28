@@ -2,7 +2,7 @@
 
 **Submission:** `example-setA-P2.md`  ·  **Name:** Example Student  
 **Paper:** Set A · Paper 2 – Synoptic mixed-topic paper  
-**Marked:** 2026-07-28 21:03 (UTC)  
+**Marked:** 2026-07-28 21:11 (UTC)  
 
 ## Score summary
 

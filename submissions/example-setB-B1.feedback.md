@@ -2,7 +2,7 @@
 
 **Submission:** `example-setB-B1.md`  ·  **Name:** Example Student  
 **Paper:** Set B · B1 – Enterprise (Syllabus 1.1)  
-**Marked:** 2026-07-28 21:03 (UTC)  
+**Marked:** 2026-07-28 21:11 (UTC)  
 
 ## Score summary
 
