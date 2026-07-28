@@ -1,0 +1,62 @@
+name: Mark answers from issue
+
+# The "submission box": when someone opens (or edits) a Submit-answers issue,
+# mark the issue body (typed answers and/or dragged-in handwriting photos) and
+# post the feedback back as a comment.
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: mark-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  mark:
+    # Only process issues that look like a submission
+    if: contains(github.event.issue.body, 'paper:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-ocr-${{ runner.os }}-v1
+
+      - name: Cache EasyOCR models
+        uses: actions/cache@v4
+        with:
+          path: ~/.EasyOCR
+          key: easyocr-models-v1
+
+      - name: Install OCR dependencies (for handwritten photo answers)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr libgl1 libglib2.0-0
+          python -m pip install --upgrade pip
+          python -m pip install Pillow pillow-heif pytesseract
+          python -m pip install easyocr || echo "easyocr optional install failed; Tesseract will be used"
+
+      - name: Mark the issue body
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: python3 tools/mark_issue.py
+
+      - name: Post feedback as a comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body-file issue-feedback.md
