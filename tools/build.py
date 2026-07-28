@@ -37,6 +37,50 @@ def paper_marks(paper):
     return tot
 
 
+import random  # noqa: E402
+
+
+def mix_papers(papers, seed=96092026):
+    """Redistribute the short-answer (Section A) and essay (Section B) questions
+    across all papers so that each paper spans several syllabus topics, as in a
+    live 9609 examination, instead of each paper being a single topic.
+
+    Data-response case studies (Section C) stay intact - each is one coherent
+    scenario - but are shuffled across the papers. The shuffle is deterministic
+    (fixed seed), so the QUESTIONS and MARK SCHEME documents produce identical
+    ordering and matching question numbers. Answers travel inside each question
+    object, so the mark scheme stays correct automatically."""
+    rng = random.Random(seed)
+    shorts, essays, cases = [], [], []
+    for p in papers:
+        shorts.extend(p['sectionA'])
+        essays.extend(p['sectionB'])
+        cases.append(p['case'])
+    rng.shuffle(shorts)
+    rng.shuffle(essays)
+    rng.shuffle(cases)
+    n = len(papers)
+    sa_per = len(shorts) // n
+    sb_per = len(essays) // n
+    mixed = []
+    for i in range(n):
+        mixed.append({
+            'number': i + 1,
+            'title': 'Synoptic mixed-topic paper',
+            'theme': 'Questions are drawn from across the whole AS syllabus (Sections 1-5), '
+                     'as in the live examination - topics are deliberately not grouped together.',
+            'time': '1 hour 45 minutes',
+            'sectionA': shorts[i * sa_per:(i + 1) * sa_per],
+            'sectionB': essays[i * sb_per:(i + 1) * sb_per],
+            'case': cases[i],
+        })
+    return mixed
+
+
+# Mixed set used for both documents (computed once for identical ordering).
+MIXED_PAPERS = mix_papers(PAPERS)
+
+
 # ---------------- shared rendering ----------------------------------------
 def running_header(pdf, left_txt, right_txt):
     y = PAGE_H - 30
@@ -158,7 +202,9 @@ def cover_questions(pdf):
                   font=F_BOLD, color=DARK, align='center', gap_after=2)
     pdf.paragraph("Syllabus content for 2026, 2027 and 2028", size=10,
                   font=F_OBL, color=GREY, align='center', gap_after=18)
-    pdf.paragraph("15 papers  \u00b7  20 questions per paper  \u00b7  300 questions",
+    _nq = sum(len(p['sectionA']) + len(p['sectionB']) + len(p['case']['questions']) for p in PAPERS)
+    pdf.paragraph("%d papers  \u00b7  20 questions per paper  \u00b7  %d questions"
+                  % (len(PAPERS), _nq),
                   size=11, font=F_BOLD, color=NAVY, align='center', gap_after=2)
     pdf.paragraph("Extension / higher-demand standard  \u00b7  AS Level (Papers 1 & 2 style)",
                   size=10, font=F_OBL, color=GREY, align='center', gap_after=24)
@@ -169,6 +215,10 @@ def cover_questions(pdf):
                    "Section A (short-answer), Section B (essay / extended response) and "
                    "Section C (data response / case study), mirroring the structure and "
                    "command words of Cambridge 9609 Papers 1 and 2.", size=9.6)
+        pdf.bullet("Topics are deliberately MIXED: each paper's short-answer and essay "
+                   "questions are drawn from across the whole AS syllabus, as in the live "
+                   "examination, rather than being grouped by topic. (For topic-by-topic "
+                   "revision, use the companion 'Knowledge Check - Set B'.)", size=9.6)
         pdf.bullet("A multi-part question, e.g. parts (a) and (b), is counted as ONE "
                    "question. Marks for every part are shown in brackets, e.g. [8].", size=9.6)
         pdf.bullet("Diagrams (break-even charts, product life cycles, the Boston Matrix, "
@@ -322,7 +372,7 @@ def build_questions(path):
     pdf.on_new_page = lambda p: running_header(
         p, "Cambridge AS Level Business 9609", "Question Papers \u00b7 Oct/Nov 2026") if p.page_no > 1 else None
     cover_questions(pdf)
-    for paper in PAPERS:
+    for paper in MIXED_PAPERS:
         render_paper_questions(pdf, paper)
     pages = pdf.save(path)
     return pages
@@ -333,7 +383,7 @@ def build_markscheme(path):
     pdf.on_new_page = lambda p: running_header(
         p, "Cambridge AS Level Business 9609", "Mark Scheme \u00b7 Oct/Nov 2026") if p.page_no > 1 else None
     cover_ms(pdf)
-    for paper in PAPERS:
+    for paper in MIXED_PAPERS:
         render_paper_ms(pdf, paper)
     pages = pdf.save(path)
     return pages
