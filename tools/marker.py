@@ -698,30 +698,37 @@ def mark_block(block, set_a, set_b, referenced):
             'results': results, 'missing': missing}, used_ocr
 
 
-def mark_file(path, set_a, set_b, referenced):
-    with open(path, encoding='utf-8') as f:
-        text = f.read()
+def mark_text(text, set_a, set_b, referenced=None, source_label='submission'):
+    """Mark a raw submission string. Returns (feedback_markdown, sections, totals).
+    totals is (awarded, max, num_questions). Reused by files and by issue bodies."""
+    if referenced is None:
+        referenced = set()
     name, blocks = parse_submission(text)
-    if not blocks:
-        blocks = []
     sections, used_ocr = [], False
-    for block in blocks:
+    for block in (blocks or []):
         sec, ocr = mark_block(block, set_a, set_b, referenced)
         used_ocr = used_ocr or ocr
         sections.append(sec)
-    fb_path = re.sub(r'\.md$', '', path) + '.feedback.md'
     if not sections:
-        with open(fb_path, 'w', encoding='utf-8') as f:
-            f.write("# Marked feedback\n\n> No `paper:` header or questions found. "
-                    "See submissions/README.md for the format.\n")
-        return fb_path, (0, 0, 0)
-    fb = render_feedback(path, name, sections, used_ocr)
-    with open(fb_path, 'w', encoding='utf-8') as f:
-        f.write(fb)
+        md = ("# Marked feedback\n\n> No `paper:` header or questions found in your "
+              "submission. Start with a line like `paper: B1` (or `paper: 3`) then "
+              "`## Q1`, `## Q2`, ... See the submission guide for the format.\n")
+        return md, sections, (0, 0, 0)
+    md = render_feedback(source_label, name, sections, used_ocr)
     a = sum(r['awarded'] for s in sections if s['kind'] == 'ok' for r in s['results'])
     m = sum(r['max'] for s in sections if s['kind'] == 'ok' for r in s['results'])
     nq = sum(len(s['results']) for s in sections if s['kind'] == 'ok')
-    return fb_path, (a, m, nq)
+    return md, sections, (a, m, nq)
+
+
+def mark_file(path, set_a, set_b, referenced):
+    with open(path, encoding='utf-8') as f:
+        text = f.read()
+    md, sections, totals = mark_text(text, set_a, set_b, referenced, source_label=os.path.basename(path))
+    fb_path = re.sub(r'\.md$', '', path) + '.feedback.md'
+    with open(fb_path, 'w', encoding='utf-8') as f:
+        f.write(md)
+    return fb_path, totals
 
 
 def mark_image_groups(referenced, set_a, set_b):

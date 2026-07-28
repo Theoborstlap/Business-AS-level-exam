@@ -5,6 +5,19 @@ and a GitHub Action marks it and commits a feedback report back here. You can
 submit **as many times as you like**, answer **any subset** of questions, cover
 **several papers in one file**, and even submit **handwritten answers as photos**.
 
+## Easiest: the submission box (open an Issue)
+
+The simplest "drop box" is a GitHub **Issue**:
+
+1. Go to the repo's **Issues** tab -> **New issue** -> **Submit answers for marking**.
+2. In the box, set `paper:` and type your answers under `## Q1`, `## Q2` ...
+   **To submit handwriting, just drag a photo into the box** - it uploads and
+   inserts an image link; put it under the right `## Q` heading.
+3. Click **Submit new issue**. Within a couple of minutes the marker **replies
+   with your marks and feedback as a comment**. Edit the issue to be re-marked.
+
+This needs no files and works on mobile. The file method below still works too.
+
 ## How to submit (all in the GitHub website - no software needed)
 
 1. Open this `submissions/` folder on GitHub -> **Add file -> Create new file**
