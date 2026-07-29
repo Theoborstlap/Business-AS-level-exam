@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business 9609 AS - Auto Marker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Cambridge AS Business 9609 &middot; Auto Marker</h1>
+  <p>Pick a paper, type (or photograph) your answers, and get instant marks &amp; feedback - all in your browser.</p>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <div>
+      <label for="setSel">Set</label>
+      <select id="setSel">
+        <option value="A">Set A - exam papers (1-16)</option>
+        <option value="B">Set B - knowledge check (B1-B10)</option>
+      </select>
+    </div>
+    <div>
+      <label for="paperSel">Paper</label>
+      <select id="paperSel"></select>
+    </div>
+    <div style="flex:1"></div>
+    <button id="loadBtn" class="btn btn-ghost">Load paper</button>
+  </div>
+
+  <div id="paperArea"></div>
+
+  <div class="note" id="startNote">
+    Choose a set and paper above, then click <strong>Load paper</strong>.
+    You can answer any number of questions. For handwriting, click
+    <em>&#128247; Photo</em> on a question to read your writing with in-browser OCR
+    (first use downloads the OCR engine; check the transcription before marking).
+  </div>
+</div>
+
+<div class="summary-bar hidden" id="summaryBar">
+  <div class="wrap2">
+    <div>
+      <div class="total" id="totalScore">-</div>
+      <div class="small" id="totalBreakdown"></div>
+    </div>
+    <div>
+      <button id="clearBtn" class="btn btn-ghost">Clear answers</button>
+      <button id="markBtn" class="btn btn-primary">Mark my answers</button>
+    </div>
+  </div>
+</div>
+
+<script src="marker.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
