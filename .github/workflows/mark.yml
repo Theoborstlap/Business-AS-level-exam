@@ -1,7 +1,7 @@
 name: Mark exam submissions
 
-# Runs whenever a submission file changes, marks it with tools/marker.py,
-# and commits the feedback report back into submissions/.
+# Runs whenever a submission changes, marks it with tools/marker.py (including
+# OCR of handwritten photo answers), and commits the feedback back.
 on:
   push:
     paths:
@@ -18,6 +18,7 @@ concurrency:
 jobs:
   mark:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,6 +27,26 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Cache pip downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-ocr-${{ runner.os }}-v1
+
+      - name: Cache EasyOCR models
+        uses: actions/cache@v4
+        with:
+          path: ~/.EasyOCR
+          key: easyocr-models-v1
+
+      - name: Install OCR dependencies (for handwritten photo answers)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr libgl1 libglib2.0-0
+          python -m pip install --upgrade pip
+          python -m pip install Pillow pillow-heif pytesseract
+          python -m pip install easyocr || echo "easyocr optional install failed; Tesseract will be used"
 
       - name: Mark all submissions
         run: python3 tools/marker.py
